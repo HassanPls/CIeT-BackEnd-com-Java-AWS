@@ -1,4 +1,4 @@
-package sudoku_game_java.util;
+package util;
 
 public final class BoardTemplate {
 

@@ -1,4 +1,4 @@
-package sudoku_game_java.model;
+package model;
 
 import java.util.Collection;
 import java.util.List;

@@ -1,4 +1,4 @@
-package sudoku_game_java.model;
+package model;
 
 public enum GameStatusEnum {
     NON_STARTED("não iniciado"),

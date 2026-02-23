@@ -1,5 +1,3 @@
-package sudoku_game_java;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,9 +6,9 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import sudoku_game_java.model.Board;
-import sudoku_game_java.model.Space;
-import sudoku_game_java.util.BoardTemplate;
+import model.Board;
+import model.Space;
+import util.BoardTemplate;
 
 public class App {
     private final static Scanner Sc = new Scanner(System.in);
@@ -161,7 +159,7 @@ public class App {
         for (int i = 0; i < BOARD_LIMIT; i++) {
             spaces.add(new ArrayList<>());
             for (int j = 0; j < BOARD_LIMIT; j++) {
-                String positionConfig = positions.get("%s, %s".formatted(i, j));
+                String positionConfig = positions.get("%s,%s".formatted(i, j));
                 int expected = Integer.parseInt(positionConfig.split(",")[0]);
                 boolean fixed = Boolean.parseBoolean(positionConfig.split(",")[1]);
                 Space currentSpace = new Space(expected, fixed);
