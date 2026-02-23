@@ -3,21 +3,63 @@
  */
 package org.example;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Stream;
 
-import org.example.persistence.ConnectionUtil;
+import org.example.persistence.EmployeeAuditDAO;
+import org.example.persistence.EmployeeDAO;
+import org.example.persistence.EmployeeParamDAO;
+import org.example.persistence.entity.EmployeeEntity;
+import org.flywaydb.core.Flyway;
+
+import net.datafaker.Faker;
 
 public class App {
     public String getGreeting() {
         return "Hello World!";
     }
     
+    private final static EmployeeParamDAO employeeDao = new EmployeeParamDAO();
+    private final static EmployeeAuditDAO employeeAuditDAO = new EmployeeAuditDAO();
+    private final static Faker faker = new Faker(Locale.of("pt", "BR"));
     public static void main(String[] args) {
-        try (Connection connection = ConnectionUtil.getConnection()) {
-            System.out.println("Conectou");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Flyway flyway = Flyway.configure().dataSource("jdbc:mysql://localhost/jdbc_sample", "root", "").load();
+        flyway.migrate();
+
+        /* EmployeeEntity employeeEntity = new EmployeeEntity();
+        employeeEntity.setName("Pedro");
+        employeeEntity.setSalary(new BigDecimal("3500"));
+        employeeEntity.setBirthday(OffsetDateTime.now().minusYears(20));
+        System.out.println(employeeEntity);
+        employeeDao.insertWithProcedure(employeeEntity);
+
+        employeeDao.findAll().forEach(System.out::println);
+        System.out.println(employeeDao.findById(1));
+
+        EmployeeEntity employeeEntity1 = new EmployeeEntity();
+        employeeEntity1.setId(employeeEntity.getId());
+        employeeEntity1.setName("João");
+        employeeEntity1.setSalary(new BigDecimal("5000"));
+        employeeEntity1.setBirthday(OffsetDateTime.now().minusYears(30));
+        employeeDao.update(employeeEntity1); 
+
+        employeeDao.delete(employeeEntity1.getId());
+
+        employeeAuditDAO.findAll().forEach(System.out::println); */
+
+        List<EmployeeEntity> entities = Stream.generate(() -> {
+            EmployeeEntity employee = new EmployeeEntity();
+            employee.setName(faker.name().fullName());
+            employee.setSalary(new BigDecimal(faker.number().digits(4)));
+            employee.setBirthday(OffsetDateTime.now().minusYears(faker.number().numberBetween(20, 50)));
+            return employee;
+        }).limit(4000).toList();
+
+        employeeDao.insert(entities);
     }
 }

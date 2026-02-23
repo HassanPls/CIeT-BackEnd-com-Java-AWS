@@ -8,6 +8,8 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+
+    id("org.flywaydb.flyway") version "12.0.2"
 }
 
 repositories {
@@ -23,10 +25,12 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
-    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("com.mysql:mysql-connector-j:9.6.0")
     implementation("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
     implementation("org.flywaydb:flyway-core:12.0.2")
     implementation("org.flywaydb:flyway-mysql:12.0.2")
+    implementation("net.datafaker:datafaker:2.5.4")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
