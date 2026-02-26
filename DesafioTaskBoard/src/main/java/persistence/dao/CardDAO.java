@@ -1,0 +1,112 @@
+package persistence.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.Optional;
+
+import com.mysql.cj.jdbc.StatementImpl;
+
+import lombok.AllArgsConstructor;
+import persistence.converter.OffsetDateTimeConverter;
+import persistence.dto.CardDetailsDTO;
+import persistence.entity.CardEntity;
+
+@AllArgsConstructor
+public class CardDAO {
+    private Connection connection;
+
+    public CardEntity insert(final CardEntity entity) throws SQLException {
+        String sql = "INSERT INTO CARDS (title, description, board_column_id) VALUES (?, ?, ?);";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int i = 1;
+            statement.setString(i++, entity.getTitle());
+            statement.setString(i++, entity.getDescription());
+            statement.setLong(i++, entity.getBoardColumnEntity().getId());
+            statement.executeUpdate();
+            if (statement instanceof StatementImpl impl) {
+                entity.setId(impl.getLastInsertID());
+            }
+        }
+        return entity;
+    }
+
+    public void moveToColumn(final Long cardId, final Long columnId) throws SQLException {
+        String sql = "UPDATE CARDS SET board_column_id = ? WHERE id = ?;";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int i = 1;
+            statement.setLong(i++, columnId);
+            statement.setLong(i++, cardId);
+            statement.executeUpdate();
+        }
+    }
+
+    public Optional<CardDetailsDTO> findById(final Long id) throws SQLException {
+        String sql = """
+                SELECT
+                    c.id,
+                    c.title,
+                    c.description
+                    b.blocked_at,
+                    b.blocked_reason,
+                    c.board_column_id,
+                    bc.name,
+                    (SELECT COUNT(sub_b.id)
+                        FROM BLOCKS sub_b
+                        WHERE sub_b.card_id = c.id
+                    ) blocks_amount
+                FROM CARDS c
+                LEFT JOIN BLOCKS b
+                    ON c.id = b.card_id
+                    AND b.unblocked_at IS NULL
+                INNER JOIN BOARDS_COLUMNS bc
+                    ON bc.id = c.board_column_id
+                WHERE c.id = ?;
+                """;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, id);
+            statement.executeQuery();
+            ResultSet resultSet = statement.getResultSet();
+            if (resultSet.next()) {
+                CardDetailsDTO dto = new CardDetailsDTO(
+                        resultSet.getLong("c.id"),
+                        resultSet.getString("c.title"),
+                        resultSet.getString("c.description"),
+                        Objects.nonNull(resultSet.getString("b.blocked_reasion")),
+                        OffsetDateTimeConverter.toOffsetDateTime(resultSet.getTimestamp("b.blocked_at")),
+                        resultSet.getString("b.blocked_reasion"),
+                        resultSet.getInt("blocks_amount"),
+                        resultSet.getLong("c.board_column_id"),
+                        resultSet.getString("bc.name"));
+                return Optional.of(dto);
+            }
+
+        }
+        return Optional.empty();
+    }
+
+    public void block(final Long cardId, final String reason) throws SQLException {
+        String sql = "INSERT INTO BLOCKS (blocked_at, blocked_reason, card_id) VALUES (?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int i = 1;
+            statement.setTimestamp(i++, OffsetDateTimeConverter.toTimestamp(OffsetDateTime.now()));
+            statement.setString(i++, reason);
+            statement.setLong(i++, cardId);
+            statement.executeUpdate();
+        }
+    }
+
+    public void unblock(final Long cardId, final String reason) throws SQLException {
+        String sql = "UPDATE BLOCKS SET unblocked_at = ?, unblocked_reason = ? WHERE card_id = ? AND unblocked_reson IS NULL";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int i = 1;
+            statement.setTimestamp(i++, OffsetDateTimeConverter.toTimestamp(OffsetDateTime.now()));
+            statement.setString(i++, reason);
+            statement.setLong(i++, cardId);
+            statement.executeUpdate();
+        }
+    }
+}
