@@ -52,7 +52,7 @@ public class CardService {
             BoardColumnInfoDTO nextColumn = boardColumnInfoDTOs.stream()
                     .filter(bc -> bc.order() == boardColumnInfo.order() + 1).findFirst()
                     .orElseThrow(() -> new IllegalStateException("O card está cancelado"));
-            dao.moveToColumn(nextColumn.id(), cardId);
+            dao.moveToColumn(cardId, nextColumn.id());
             connection.commit();
             System.out.println("Card movido com sucesso");
         } catch (SQLException e) {
@@ -84,7 +84,7 @@ public class CardService {
             boardColumnInfoDTOs.stream()
                     .filter(bc -> bc.order() == boardColumnInfo.order() + 1).findFirst()
                     .orElseThrow(() -> new IllegalStateException("O card está cancelado"));
-            dao.moveToColumn(cancelColumnId, cardId);
+            dao.moveToColumn(cardId, cancelColumnId);
             connection.commit();
             System.out.println("Card foi cancelado com sucesso");
         } catch (SQLException e) {

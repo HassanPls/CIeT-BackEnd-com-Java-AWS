@@ -49,9 +49,9 @@ public class CardDAO {
                 SELECT
                     c.id,
                     c.title,
-                    c.description
+                    c.description,
                     b.blocked_at,
-                    b.blocked_reason,
+                    b.block_reason,
                     c.board_column_id,
                     bc.name,
                     (SELECT COUNT(sub_b.id)
@@ -75,9 +75,9 @@ public class CardDAO {
                         resultSet.getLong("c.id"),
                         resultSet.getString("c.title"),
                         resultSet.getString("c.description"),
-                        Objects.nonNull(resultSet.getString("b.blocked_reasion")),
+                        Objects.nonNull(resultSet.getString("b.block_reason")),
                         OffsetDateTimeConverter.toOffsetDateTime(resultSet.getTimestamp("b.blocked_at")),
-                        resultSet.getString("b.blocked_reasion"),
+                        resultSet.getString("b.block_reason"),
                         resultSet.getInt("blocks_amount"),
                         resultSet.getLong("c.board_column_id"),
                         resultSet.getString("bc.name"));
@@ -89,7 +89,7 @@ public class CardDAO {
     }
 
     public void block(final Long cardId, final String reason) throws SQLException {
-        String sql = "INSERT INTO BLOCKS (blocked_at, blocked_reason, card_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO BLOCKS (blocked_at, block_reason, card_id) VALUES (?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int i = 1;
             statement.setTimestamp(i++, OffsetDateTimeConverter.toTimestamp(OffsetDateTime.now()));
@@ -100,7 +100,7 @@ public class CardDAO {
     }
 
     public void unblock(final Long cardId, final String reason) throws SQLException {
-        String sql = "UPDATE BLOCKS SET unblocked_at = ?, unblocked_reason = ? WHERE card_id = ? AND unblocked_reson IS NULL";
+        String sql = "UPDATE BLOCKS SET unblocked_at = ?, unblock_reason = ? WHERE card_id = ? AND unblock_reason IS NULL";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int i = 1;
             statement.setTimestamp(i++, OffsetDateTimeConverter.toTimestamp(OffsetDateTime.now()));

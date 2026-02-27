@@ -21,12 +21,13 @@ import service.CardService;
 @AllArgsConstructor
 public class BoardMenu {
     private final BoardEntity entity;
-    private static Scanner Sc = new Scanner(System.in).useDelimiter("\n");
+    private static Scanner Sc = new Scanner(System.in);
 
     public void execute() throws SQLException {
-        System.out.printf("Bem-vindo ao board %s, selecione a operação que deseja: ", entity.getId());
+        System.out.printf("Bem-vindo ao board %s, selecione a operação que deseja: \n", entity.getId());
         int option = -1;
         while (option != 9) {
+            System.out.println("============================");
             System.out.println("1 - Criar um card");
             System.out.println("2 - Mover um card");
             System.out.println("3 - Bloquear um card");
@@ -38,6 +39,7 @@ public class BoardMenu {
             System.out.println("9 - Voltar para o menu");
             System.out.println("10 - Sair");
             option = Sc.nextInt();
+            Sc.nextLine();
             switch (option) {
                 case 1 -> createCard();
                 case 2 -> moveCard();
@@ -57,9 +59,9 @@ public class BoardMenu {
     private void createCard() throws SQLException {
         CardEntity card = new CardEntity();
         System.out.println("Informe o título do card");
-        card.setTitle(Sc.next());
+        card.setTitle(Sc.nextLine());
         System.out.println("Informe a descrição do card");
-        card.setDescription(Sc.next());
+        card.setDescription(Sc.nextLine());
         card.setBoardColumnEntity(entity.getInitialColumn());
         try (Connection connection = ConnectionConfig.getConnection()) {
             new CardService(connection).insert(card);
@@ -71,6 +73,7 @@ public class BoardMenu {
     private void moveCard() throws SQLException {
         System.out.println("Insira o id do card que deseja mover para próxima coluna: ");
         Long cardId = Sc.nextLong();
+        Sc.nextLine();
         List<BoardColumnInfoDTO> boardColumnInfoDTOs = entity.getBoardColumns().stream()
                 .map(bc -> new BoardColumnInfoDTO(bc.getId(), bc.getOrder(), bc.getKind())).toList();
         try (Connection connection = ConnectionConfig.getConnection()) {
@@ -83,8 +86,9 @@ public class BoardMenu {
     private void blockCard() throws SQLException {
         System.out.println("Insira o id do card que será bloqueado: ");
         Long cardId = Sc.nextLong();
+        Sc.nextLine();
         System.out.println("Informe o motivo do bloqueio do card: ");
-        String reason = Sc.next();
+        String reason = Sc.nextLine();
         List<BoardColumnInfoDTO> boardColumnInfoDTOs = entity.getBoardColumns().stream()
                 .map(bc -> new BoardColumnInfoDTO(bc.getId(), bc.getOrder(), bc.getKind())).toList();
         try (Connection connection = ConnectionConfig.getConnection()) {
@@ -97,8 +101,9 @@ public class BoardMenu {
     private void unblockCard() throws SQLException {
         System.out.println("Insira o id do card que será desbloqueado: ");
         Long cardId = Sc.nextLong();
+        Sc.nextLine();
         System.out.println("Informe o motivo do desbloqueio do card: ");
-        String reason = Sc.next();
+        String reason = Sc.nextLine();
         try (Connection connection = ConnectionConfig.getConnection()) {
             new CardService(connection).unblock(cardId, reason);
         } catch (RuntimeException e) {
@@ -109,6 +114,7 @@ public class BoardMenu {
     private void cancelCard() throws SQLException {
         System.out.println("Insira o id do card que deseja mover para coluna de cancelamento");
         Long cardId = Sc.nextLong();
+        Sc.nextLine();
         BoardColumnEntity cancelColumn = entity.getCancelColumn();
         List<BoardColumnInfoDTO> boardColumnInfoDTOs = entity.getBoardColumns().stream()
                 .map(bc -> new BoardColumnInfoDTO(bc.getId(), bc.getOrder(), bc.getKind())).toList();
@@ -141,6 +147,7 @@ public class BoardMenu {
             entity.getBoardColumns()
                     .forEach(c -> System.out.printf("%s - %s [%s]\n", c.getId(), c.getName(), c.getKind()));
             selectedColumn = Sc.nextLong();
+            Sc.nextLine();
         }
 
         try (Connection connection = ConnectionConfig.getConnection()) {
@@ -157,6 +164,7 @@ public class BoardMenu {
     private void showCard() throws SQLException {
         System.out.println("Informe o id do card que deseja visualizar: ");
         Long selectedCardId = Sc.nextLong();
+        Sc.nextLine();
         try (Connection connection = ConnectionConfig.getConnection()) {
             new CardQueryService(connection).findById(selectedCardId).ifPresentOrElse(c -> {
                 System.out.printf("Card %s - %s\nDescrição: %s\n", c.id(), c.title(), c.description());

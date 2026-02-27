@@ -27,6 +27,7 @@ public class BoardService {
                 boardColumnDAO.insert(column);
             }
             connection.commit();
+            System.out.println("=======Board criado com sucesso!=======");
         } catch (SQLException e) {
             connection.rollback();
             throw e;
@@ -40,6 +41,7 @@ public class BoardService {
             if (!dao.exists(id)) return false;
             dao.delete(id);
             connection.commit();
+            System.out.println("=======Board deletado com sucesso!=======");
             return true;
         } catch (SQLException e) {
             connection.rollback();
